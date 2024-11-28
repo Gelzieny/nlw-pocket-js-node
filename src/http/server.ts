@@ -20,6 +20,10 @@ app.register(fastifyCors, {
   origin: '*',
 })
 
+app.register(fastifyJwt, {
+  secret: env.JWT_SECRET,
+})
+
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 
