@@ -1,7 +1,7 @@
-import { makeGoal } from '../test/factories/make-goal'
-import { makeGoalCompletion } from '../test/factories/make-goal-completion'
-import { makeUser } from '../test/factories/make-user'
-import { describe, expect, it } from 'vitest'
+import { describe, it, expect } from 'vitest'
+import { makeUser } from '../../test/factories/make-user'
+import { makeGoal } from '../../test/factories/make-goal'
+import { makeGoalCompletion } from '../../test/factories/make-goal-completion'
 import { getWeekPendingGoals } from './get-week-pending-goals'
 
 describe('get week pending goals', () => {
@@ -13,7 +13,6 @@ describe('get week pending goals', () => {
       title: 'Meditar',
       desiredWeeklyFrequency: 2,
     })
-
     const goal2 = await makeGoal({
       userId: user.id,
       title: 'Nadar',

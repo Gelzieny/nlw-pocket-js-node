@@ -1,8 +1,8 @@
-import dayjs from 'dayjs'
 import { and, count, eq, gte, lte } from 'drizzle-orm'
-import { sql } from 'drizzle-orm'
 import { db } from '../db'
 import { goalCompletions, goals, users } from '../db/schema'
+import dayjs from 'dayjs'
+import { sql } from 'drizzle-orm'
 
 interface CreateGoalCompletionRequest {
   userId: string
@@ -23,11 +23,13 @@ export async function createGoalCompletion({
         completionCount: count(goalCompletions.id).as('completionCount'),
       })
       .from(goalCompletions)
+      .innerJoin(goals, eq(goals.id, goalCompletions.goalId))
       .where(
         and(
           gte(goalCompletions.createdAt, firstDayOfWeek),
           lte(goalCompletions.createdAt, lastDayOfWeek),
-          eq(goalCompletions.goalId, goalId)
+          eq(goalCompletions.goalId, goalId),
+          eq(goals.userId, userId)
         )
       )
       .groupBy(goalCompletions.goalId)
@@ -43,12 +45,10 @@ export async function createGoalCompletion({
     })
     .from(goals)
     .leftJoin(goalCompletionCounts, eq(goalCompletionCounts.goalId, goals.id))
-    .where(eq(goals.id, goalId))
+    .where(and(eq(goals.id, goalId), eq(goals.userId, userId)))
     .limit(1)
 
   const { completionCount, desiredWeeklyFrequency } = result[0]
-
-  let earnedExperience = 5
 
   if (completionCount >= desiredWeeklyFrequency) {
     throw new Error('Goal already completed this week!')
@@ -56,10 +56,7 @@ export async function createGoalCompletion({
 
   const isLastCompletionFromGoal =
     completionCount + 1 === desiredWeeklyFrequency
-
-  if (isLastCompletionFromGoal) {
-    earnedExperience += 2
-  }
+  const earnedExperience = isLastCompletionFromGoal ? 7 : 5
 
   const goalCompletion = await db.transaction(async tx => {
     const [goalCompletion] = await db
@@ -77,5 +74,7 @@ export async function createGoalCompletion({
     return goalCompletion
   })
 
-  return { goalCompletion }
+  return {
+    goalCompletion,
+  }
 }

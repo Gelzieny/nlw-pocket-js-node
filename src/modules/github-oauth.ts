@@ -1,12 +1,10 @@
-import { env } from "../env"
+import { env } from '../env'
 
 interface AccessTokenResponse {
   access_token: string
-  scope: string
-  token_type: 'bearer'
 }
 
-export interface GetUserResponse {
+interface GetUserResponse {
   id: number
   name: string | null
   email: string | null
@@ -14,16 +12,14 @@ export interface GetUserResponse {
 }
 
 export async function getAccessTokenFromCode(code: string) {
-  const accessTokenUrl = new URL('https://github.com/login/oauth/access_token')
+  const accessTokenURL = new URL('https://github.com/login/oauth/access_token')
 
-  accessTokenUrl.searchParams.set('client_id', env.GITHUB_OAUTH_CLIENT_ID)
-  accessTokenUrl.searchParams.set(
-    'client_secret',
-    env.GITHUB_OAUTH_CLIENT_SECRET
-  )
-  accessTokenUrl.searchParams.set('code', code)
+  accessTokenURL.searchParams.append('client_id', env.GITHUB_CLIENT_ID)
+  accessTokenURL.searchParams.append('client_secret', env.GITHUB_CLIENT_SECRET)
+  accessTokenURL.searchParams.append('code', code)
 
-  const response = await fetch(accessTokenUrl, {
+  const response = await fetch(accessTokenURL, {
+    method: 'POST',
     headers: {
       Accept: 'application/json',
     },
@@ -37,7 +33,6 @@ export async function getAccessTokenFromCode(code: string) {
 export async function getUserFromAccessToken(accessToken: string) {
   const response = await fetch('https://api.github.com/user', {
     headers: {
-      Accept: 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
   })

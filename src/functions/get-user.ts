@@ -7,7 +7,7 @@ interface GetUserRequest {
 }
 
 export async function getUser({ userId }: GetUserRequest) {
-  const [user] = await db
+  const result = await db
     .select({
       id: users.id,
       name: users.name,
@@ -17,5 +17,9 @@ export async function getUser({ userId }: GetUserRequest) {
     .from(users)
     .where(eq(users.id, userId))
 
-  return { user }
+  const user = result[0]
+
+  return {
+    user,
+  }
 }

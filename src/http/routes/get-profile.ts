@@ -1,20 +1,20 @@
-import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { authenticateHook } from '../hooks/auth'
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { getUser } from '../../functions/get-user'
+import { authenticateUserHook } from '../hooks/auth'
 
 export const getProfileRoute: FastifyPluginAsyncZod = async app => {
   app.get(
     '/profile',
     {
-      onRequest: [authenticateHook],
+      onRequest: [authenticateUserHook],
       schema: {
-        tags: ['user'],
-        operationId: 'getProfile',
+        tags: ['auth'],
         description: 'Get authenticated user profile',
+        operationId: 'getProfile',
         response: {
           200: z.object({
-            user: z.object({
+            profile: z.object({
               id: z.string(),
               name: z.string().nullable(),
               email: z.string().nullable(),
@@ -24,11 +24,12 @@ export const getProfileRoute: FastifyPluginAsyncZod = async app => {
         },
       },
     },
-    async request => {
+    async (request, reply) => {
       const userId = request.user.sub
+
       const { user } = await getUser({ userId })
 
-      return { user }
+      return reply.status(200).send({ profile: user })
     }
   )
 }

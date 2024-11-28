@@ -14,10 +14,16 @@ export async function createGoal({
 }: CreateGoalRequest) {
   const result = await db
     .insert(goals)
-    .values({ userId, title, desiredWeeklyFrequency })
+    .values({
+      userId,
+      title,
+      desiredWeeklyFrequency,
+    })
     .returning()
 
   const goal = result[0]
 
-  return { goal }
+  return {
+    goal,
+  }
 }

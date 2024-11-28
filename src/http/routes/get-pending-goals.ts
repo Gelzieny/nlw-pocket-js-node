@@ -1,17 +1,17 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { z } from 'zod'
-import { authenticateHook } from '../hooks/auth'
 import { getWeekPendingGoals } from '../../functions/get-week-pending-goals'
+import { z } from 'zod'
+import { authenticateUserHook } from '../hooks/auth'
 
 export const getPendingGoalsRoute: FastifyPluginAsyncZod = async app => {
   app.get(
     '/pending-goals',
     {
-      onRequest: [authenticateHook],
+      onRequest: [authenticateUserHook],
       schema: {
         tags: ['goals'],
-        operationId: 'getPendingGoals',
         description: 'Get pending goals',
+        operationId: 'getPendingGoals',
         response: {
           200: z.object({
             pendingGoals: z.array(
@@ -28,7 +28,9 @@ export const getPendingGoalsRoute: FastifyPluginAsyncZod = async app => {
     },
     async request => {
       const userId = request.user.sub
-      const { pendingGoals } = await getWeekPendingGoals({ userId })
+      const { pendingGoals } = await getWeekPendingGoals({
+        userId,
+      })
 
       return { pendingGoals }
     }

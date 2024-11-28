@@ -1,18 +1,18 @@
-import dayjs from 'dayjs'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { z } from 'zod'
-import { authenticateHook } from '../hooks/auth'
 import { getWeekSummary } from '../../functions/get-week-summary'
+import { z } from 'zod'
+import dayjs from 'dayjs'
+import { authenticateUserHook } from '../hooks/auth'
 
 export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
   app.get(
     '/summary',
     {
-      onRequest: [authenticateHook],
+      onRequest: [authenticateUserHook],
       schema: {
         tags: ['goals'],
+        description: 'Get week summary',
         operationId: 'getWeekSummary',
-        description: 'Get completed goals in a specific week',
         querystring: z.object({
           weekStartsAt: z.coerce
             .date()
@@ -23,17 +23,19 @@ export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
           200: z.object({
             summary: z.object({
               completed: z.number(),
-              total: z.number(),
-              goalsPerDay: z.record(
-                z.string(),
-                z.array(
-                  z.object({
-                    id: z.string(),
-                    title: z.string(),
-                    completedAt: z.string(),
-                  })
+              total: z.number().nullable(),
+              goalsPerDay: z
+                .record(
+                  z.string(),
+                  z.array(
+                    z.object({
+                      id: z.string(),
+                      title: z.string(),
+                      completedAt: z.string(),
+                    })
+                  )
                 )
-              ),
+                .nullable(),
             }),
           }),
         },
@@ -44,8 +46,8 @@ export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
       const { weekStartsAt } = request.query
 
       const { summary } = await getWeekSummary({
-        weekStartsAt,
         userId,
+        weekStartsAt,
       })
 
       return { summary }

@@ -1,5 +1,5 @@
-import { makeUser } from '../test/factories/make-user'
-import { describe, expect, it } from 'vitest'
+import { describe, it, expect } from 'vitest'
+import { makeUser } from '../../test/factories/make-user'
 import { createGoal } from './create-goal'
 
 describe('create goal', () => {
@@ -8,14 +8,14 @@ describe('create goal', () => {
 
     const result = await createGoal({
       userId: user.id,
-      title: 'Example goal',
+      title: 'Example Goal',
       desiredWeeklyFrequency: 5,
     })
 
     expect(result).toEqual({
       goal: expect.objectContaining({
         id: expect.any(String),
-        title: 'Example goal',
+        title: 'Example Goal',
         desiredWeeklyFrequency: 5,
       }),
     })

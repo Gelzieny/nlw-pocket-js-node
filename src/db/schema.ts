@@ -8,13 +8,9 @@ export const users = pgTable('users', {
   name: text('name'),
   email: text('email'),
   avatarUrl: text('avatar_url').notNull(),
-  externalAccountId: integer('external_account_id').notNull().unique(),
   experience: integer('experience').notNull().default(0),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  externalAccountId: integer('external_account_id').notNull().unique(),
 })
-
 
 export const goals = pgTable('goals', {
   id: text('id')
@@ -29,7 +25,6 @@ export const goals = pgTable('goals', {
     .notNull()
     .defaultNow(),
 })
-
 
 export const goalCompletions = pgTable('goal_completions', {
   id: text('id')

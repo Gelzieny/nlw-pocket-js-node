@@ -1,19 +1,19 @@
-import { authenticateUser } from '../modules/auth'
+import { eq } from 'drizzle-orm'
+import { db } from '../db'
+import { users } from '../db/schema'
 import {
   getAccessTokenFromCode,
   getUserFromAccessToken,
-} from '../modules/github'
-import { type InferSelectModel, eq } from 'drizzle-orm'
-import { db } from '../db'
-import { users } from '../db/schema'
+} from '../modules/github-oauth'
+import { authenticateUser } from '../modules/auth'
 
-interface AuthenticateFromGithubCodeRequest {
+interface AuthenticateFromGitHubCodeRequest {
   code: string
 }
 
 export async function authenticateFromGithubCode({
   code,
-}: AuthenticateFromGithubCodeRequest) {
+}: AuthenticateFromGitHubCodeRequest) {
   const accessToken = await getAccessTokenFromCode(code)
   const githubUser = await getUserFromAccessToken(accessToken)
 
@@ -22,24 +22,27 @@ export async function authenticateFromGithubCode({
     .from(users)
     .where(eq(users.externalAccountId, githubUser.id))
 
-  const isUserAlreadyRegistered = result.length > 0
+  let userId: string | null
 
-  let user: InferSelectModel<typeof users> | null = null
+  const userAlreadyExists = result.length > 0
 
-  if (isUserAlreadyRegistered) {
-    user = result[0]
+  if (userAlreadyExists) {
+    userId = result[0].id
+  } else {
+    const [insertedUser] = await db
+      .insert(users)
+      .values({
+        name: githubUser.name,
+        email: githubUser.email,
+        avatarUrl: githubUser.avatar_url,
+        externalAccountId: githubUser.id,
+      })
+      .returning()
+
+    userId = insertedUser.id
   }
-  ;[user] = await db
-    .insert(users)
-    .values({
-      name: githubUser.name,
-      email: githubUser.email,
-      avatarUrl: githubUser.avatar_url,
-      externalAccountId: githubUser.id,
-    })
-    .returning()
 
-  const { token } = await authenticateUser({ userId: user.id })
+  const token = await authenticateUser(userId)
 
   return { token }
 }

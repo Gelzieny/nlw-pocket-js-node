@@ -1,37 +1,25 @@
+import { describe, it, beforeEach, vi, expect } from 'vitest'
+import { authenticateFromGithubCode } from './authenticate-from-github-code'
 import { db } from '../db'
 import { users } from '../db/schema'
-import * as github from '../modules/github'
-import { makeUser } from '../test/factories/make-user'
-import { eq } from 'drizzle-orm'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { authenticateFromGithubCode } from './authenticate-from-github-code'
-
-const GITHUB_USER_ID = 123456789
+import * as github from '../modules/github-oauth'
+import { and, eq, ne } from 'drizzle-orm'
+import { makeUser } from '../../test/factories/make-user'
 
 describe('authenticate from github code', () => {
-  beforeEach(async () => {
-    await db.delete(users).where(eq(users.externalAccountId, GITHUB_USER_ID))
+  beforeEach(() => {
+    vi.mock('../modules/github-oauth')
 
-    vi.mock('@/external/github')
+    vi.clearAllMocks()
   })
 
   it('should be able to authenticate from github code', async () => {
-    vi.spyOn(github, 'getAccessTokenFromCode').mockImplementationOnce(
-      async () => {
-        return 'valid-access-token'
-      }
-    )
-
-    vi.spyOn(github, 'getUserFromAccessToken').mockImplementationOnce(
-      async () => {
-        return {
-          id: GITHUB_USER_ID,
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          avatar_url: 'https://github.com/diego3g.png',
-        }
-      }
-    )
+    vi.spyOn(github, 'getUserFromAccessToken').mockResolvedValueOnce({
+      id: 123456789,
+      name: 'John Doe',
+      email: null,
+      avatar_url: 'https://github.com/diego3g.png',
+    })
 
     const sut = await authenticateFromGithubCode({
       code: 'sample-github-code',
@@ -42,32 +30,31 @@ describe('authenticate from github code', () => {
     const [userOnDb] = await db
       .select()
       .from(users)
-      .where(eq(users.externalAccountId, GITHUB_USER_ID))
+      .where(eq(users.externalAccountId, 123456789))
 
     expect(userOnDb.name).toEqual('John Doe')
   })
 
-  it('should be able to authenticate when user already exists', async () => {
-    const user = await makeUser({
-      externalAccountId: GITHUB_USER_ID,
+  it('should be able to authenticate with existing github user', async () => {
+    const existing = await makeUser({
+      name: 'Jane Doe',
     })
 
-    vi.spyOn(github, 'getAccessTokenFromCode').mockImplementationOnce(
-      async () => {
-        return 'valid-access-token'
-      }
-    )
+    await db
+      .delete(users)
+      .where(
+        and(
+          eq(users.externalAccountId, existing.externalAccountId),
+          ne(users.id, existing.id)
+        )
+      )
 
-    vi.spyOn(github, 'getUserFromAccessToken').mockImplementationOnce(
-      async () => {
-        return {
-          id: GITHUB_USER_ID,
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          avatar_url: 'https://github.com/diego3g.png',
-        }
-      }
-    )
+    vi.spyOn(github, 'getUserFromAccessToken').mockResolvedValueOnce({
+      id: existing.externalAccountId,
+      name: 'John Doe',
+      email: null,
+      avatar_url: 'https://github.com/diego3g.png',
+    })
 
     const sut = await authenticateFromGithubCode({
       code: 'sample-github-code',
@@ -78,8 +65,8 @@ describe('authenticate from github code', () => {
     const [userOnDb] = await db
       .select()
       .from(users)
-      .where(eq(users.externalAccountId, GITHUB_USER_ID))
+      .where(eq(users.externalAccountId, existing.externalAccountId))
 
-    expect(userOnDb.name).toEqual(user.name)
+    expect(userOnDb.name).toEqual('Jane Doe')
   })
 })
