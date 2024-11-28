@@ -1,7 +1,7 @@
-import { db } from '../../db'
-import { users } from '../../db/schema'
-import type { InferInsertModel } from 'drizzle-orm'
 import { fakerPT_BR as faker } from '@faker-js/faker'
+import type { InferInsertModel } from 'drizzle-orm'
+import { users } from '../../db/schema'
+import { db } from '../../db'
 
 export async function makeUser(
   overrides: Partial<InferInsertModel<typeof users>> = {}

@@ -1,11 +1,11 @@
-import { db } from '../db'
+import { authenticateUser } from '../modules/auth'
 import {
   getAccessTokenFromCode,
   getUserFromAccessToken,
 } from '../modules/github'
-import { users } from '../db/schema'
-import { authenticateUser } from '../modules/auth'
 import { type InferSelectModel, eq } from 'drizzle-orm'
+import { db } from '../db'
+import { users } from '../db/schema'
 
 interface AuthenticateFromGithubCodeRequest {
   code: string

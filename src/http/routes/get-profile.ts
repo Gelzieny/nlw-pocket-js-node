@@ -1,7 +1,7 @@
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { authenticateHook } from '../hooks/auth'
 import { getUser } from '../../functions/get-user'
-import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 
 export const getProfileRoute: FastifyPluginAsyncZod = async app => {
   app.get(

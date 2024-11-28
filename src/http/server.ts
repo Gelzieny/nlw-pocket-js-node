@@ -10,14 +10,14 @@ import fastifyJwt from '@fastify/jwt'
 import fastifyCors from '@fastify/cors'
 import { fastifySwagger } from '@fastify/swagger'
 import { fastifySwaggerUi } from '@fastify/swagger-ui'
-import { createGoalRoute } from './routes/create-goal'
-import { getWeekSummaryRoute } from './routes/get-week-summary'
-import { getPendingGoalsRoute } from './routes/get-pending-goals'
-import { createCompletionRoute } from './routes/create-completion'
-import { authenticateFromGithubRoute } from './routes/authenticate-from-github'
-import { getProfileRoute } from './routes/get-profile'
 import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { createGoalRoute } from './routes/create-goal'
+import { createCompletionRoute } from './routes/create-completion'
+import { getPendingGoalsRoute } from './routes/get-pending-goals'
+import { getWeekSummaryRoute } from './routes/get-week-summary'
+import { getProfileRoute } from './routes/get-profile'
+import { getGamificationStatusRoute } from './routes/get-gamification-status'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -47,11 +47,11 @@ app.register(fastifySwaggerUi, {
 })
 
 app.register(createGoalRoute)
-app.register(getProfileRoute)
-app.register(getWeekSummaryRoute)
-app.register(getPendingGoalsRoute)
 app.register(createCompletionRoute)
-app.register(authenticateFromGithubRoute)
+app.register(getPendingGoalsRoute)
+app.register(getWeekSummaryRoute)
+app.register(getProfileRoute)
+app.register(getGamificationStatusRoute)
 
 app
   .listen({

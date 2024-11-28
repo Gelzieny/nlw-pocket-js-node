@@ -1,8 +1,8 @@
-import z from 'zod'
 import dayjs from 'dayjs'
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
 import { authenticateHook } from '../hooks/auth'
 import { getWeekSummary } from '../../functions/get-week-summary'
-import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 
 export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
   app.get(
@@ -41,7 +41,12 @@ export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
     },
     async request => {
       const userId = request.user.sub
-      const { summary } = await getWeekSummary({ userId })
+      const { weekStartsAt } = request.query
+
+      const { summary } = await getWeekSummary({
+        weekStartsAt,
+        userId,
+      })
 
       return { summary }
     }

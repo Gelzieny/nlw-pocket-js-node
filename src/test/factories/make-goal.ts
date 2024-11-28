@@ -1,7 +1,7 @@
-import { db } from '../../db'
-import { goals } from '../../db/schema'
-import type { InferInsertModel } from 'drizzle-orm'
 import { fakerPT_BR as faker } from '@faker-js/faker'
+import type { InferInsertModel } from 'drizzle-orm'
+import { goals } from '../../db/schema'
+import { db } from '../../db'
 
 export async function makeGoal(
   overrides: Partial<InferInsertModel<typeof goals>> &
