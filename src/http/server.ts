@@ -16,6 +16,8 @@ import { getPendingGoalsRoute } from './routes/get-pending-goals'
 import { createCompletionRoute } from './routes/create-completion'
 import { authenticateFromGithubRoute } from './routes/authenticate-from-github'
 import { getProfileRoute } from './routes/get-profile'
+import { writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -58,3 +60,16 @@ app
   .then(() => {
     console.log('HTTP server running!')
   })
+
+if (env.NODE_ENV === 'development') {
+  const spec = './swagger.json'
+  const specFile = resolve(__dirname, '../..', spec)
+
+  app.ready(() => {
+    const apiSpec = JSON.stringify(app.swagger() || {}, null, 2)
+
+    writeFile(specFile, apiSpec).then(() => {
+      console.log(`Swagger specification file write to ${spec}`)
+    })
+  })
+}
